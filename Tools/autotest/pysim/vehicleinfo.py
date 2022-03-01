@@ -246,6 +246,10 @@ class VehicleInfo(object):
                 "waf_target": "bin/arduplane",
                 "default_params_filename": "default_params/quadplane.parm",
             },
+            "gazebo-quadplane": {
+                "waf_target": "bin/arduplane",
+                "default_params_filename": "default_params/gazebo_quadplane.parm",
+                },
             "firefly": {
                 "waf_target": "bin/arduplane",
                 "default_params_filename": "default_params/firefly.parm",

@@ -1265,9 +1265,26 @@ void GCS_MAVLINK_Plane::handleMessage(const mavlink_message_t &msg)
         }
 
         // just do altitude for now
-        plane.next_WP_loc.alt += -packet.z*100.0;
-        gcs().send_text(MAV_SEVERITY_INFO, "Change alt to %.1f",
-                        (double)((plane.next_WP_loc.alt - plane.home.alt)*0.01));
+        // plane.next_WP_loc.alt += -packet.z*100.0;
+        // gcs().send_text(MAV_SEVERITY_INFO, "Change alt to %.1f",
+        //                 (double)((plane.next_WP_loc.alt - plane.home.alt)*0.01));
+
+        // Only set position for now
+        Location next_wp = plane.current_loc;
+
+        next_wp.offset(packet.x, packet.y);
+        next_wp.alt += -packet.z * 100;
+
+        // Check that we are only going to move in quad mode
+        if (plane.current_loc.get_distance(next_wp) < plane.quadplane.transition_threshold()) {
+            plane.control_mode->handle_guided_request(next_wp);
+
+            gcs().send_text(MAV_SEVERITY_INFO, "Change position by (%f, %f, %f) to (%i, %i, %i)",
+                            packet.x, packet.y, packet.z, next_wp.lat, next_wp.lng, next_wp.alt);
+        }
+        else {
+            gcs().send_text(MAV_SEVERITY_WARNING, "Waypoint requires Fixed Wing transition");
+        }
         
         break;
     }

@@ -1280,7 +1280,7 @@ void GCS_MAVLINK_Plane::handleMessage(const mavlink_message_t &msg)
         if (plane.current_loc.get_distance(next_wp) < plane.quadplane.transition_threshold()) {
             plane.control_mode->handle_guided_request(next_wp);
 
-            gcs().send_text(MAV_SEVERITY_INFO, "Change position by (%f, %f, %f) to (%i, %i, %i)",
+            gcs().send_text(MAV_SEVERITY_INFO, "Change position by (%f, %f, %f) to (%li, %li, %li)",
                             packet.x, packet.y, packet.z, next_wp.lat, next_wp.lng, next_wp.alt);
         }
         else {

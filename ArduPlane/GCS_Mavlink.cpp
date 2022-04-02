@@ -1269,18 +1269,28 @@ void GCS_MAVLINK_Plane::handleMessage(const mavlink_message_t &msg)
         // gcs().send_text(MAV_SEVERITY_INFO, "Change alt to %.1f",
         //                 (double)((plane.next_WP_loc.alt - plane.home.alt)*0.01));
 
-        // Only set position for now
-        Location next_wp = plane.current_loc;
 
-        next_wp.offset(packet.x, packet.y);
-        next_wp.alt += -packet.z * 100;
+        // Only set position for now
+
+        // Transform the x and y offset from body frame to global frame
+        AP_AHRS &ahrs = AP::ahrs();
+        float ne_x = packet.x*ahrs.cos_yaw() - packet.y*ahrs.sin_yaw();
+        float ne_y = packet.x*ahrs.sin_yaw() + packet.y*ahrs.cos_yaw();
+        Vector3f pos_vector = Vector3f(ne_x, ne_y, -packet.z);
+
+        // Offset current position by desired amount
+        Location next_wp = plane.current_loc;
+        next_wp.offset(pos_vector.x, pos_vector.y);
+        next_wp.alt += pos_vector.z * 100;
 
         // Check that we are only going to move in quad mode
         if (plane.current_loc.get_distance(next_wp) < plane.quadplane.transition_threshold()) {
             plane.control_mode->handle_guided_request(next_wp);
 
-            gcs().send_text(MAV_SEVERITY_INFO, "Change position by (%f, %f, %f) to (%li, %li, %li)",
-                            packet.x, packet.y, packet.z, next_wp.lat, next_wp.lng, next_wp.alt);
+            gcs().send_text(MAV_SEVERITY_INFO, "Change in local frame=(%f, %f, %f), Change in global frame=((%f, %f, %f), target=(%li, %li, %li)",
+                            packet.x, packet.y, packet.z, 
+                            pos_vector.x, pos_vector.y, pos_vector.z, 
+                            (long int)next_wp.lat, (long int)next_wp.lng, (long int)next_wp.alt);
         }
         else {
             gcs().send_text(MAV_SEVERITY_WARNING, "Waypoint requires Fixed Wing transition");

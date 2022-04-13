@@ -200,7 +200,7 @@ void GCS_MAVLINK_Plane::send_nav_controller_output() const
             plane.nav_pitch_cd * 0.01,
             nav_controller->nav_bearing_cd() * 0.01,
             nav_controller->target_bearing_cd() * 0.01,
-            MIN(plane.auto_state.wp_distance, UINT16_MAX),
+            MIN(plane.auto_state.wp_distance * 100, UINT16_MAX),
             plane.altitude_error_cm * 0.01,
             plane.airspeed_error * 100,  // incorrect units; see PR#7933
             nav_controller->crosstrack_error());

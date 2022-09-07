@@ -55,5 +55,12 @@ bool ModeGuided::handle_guided_request(Location target_loc)
 
     plane.set_guided_WP();
 
+    // Set vtol loiter true if we are going to be moving to target in vtol mode.
+    // This prevents calculating values for our control surfaces which cause
+    // a twitching effect to occur
+    if (plane.current_loc.get_distance(target_loc) < plane.quadplane.transition_threshold()) {
+        plane.auto_state.vtol_loiter = true;
+    }
+
     return true;
 }
